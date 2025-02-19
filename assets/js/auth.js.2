@@ -1,0 +1,296 @@
+(function ($) {
+    'use strict';
+
+    // reCAPTCHA widget IDs
+    let loginRecaptchaId;
+    let registerRecaptchaId;
+
+    // Password validation function
+    function validatePassword(password) {
+        const requirements = {
+            length: password.length >= 8,
+            uppercase: /[A-Z]/.test(password),
+            lowercase: /[a-z]/.test(password),
+            number: /[0-9]/.test(password)
+        };
+
+        // Update UI for each requirement
+        Object.keys(requirements).forEach(req => {
+            const element = document.querySelector(`[data-requirement="${req}"]`);
+            if (element) {
+                if (requirements[req]) {
+                    element.classList.add('met');
+                    element.classList.remove('unmet');
+                } else {
+                    element.classList.add('unmet');
+                    element.classList.remove('met');
+                }
+            }
+        });
+
+        return Object.values(requirements).every(Boolean);
+    }
+
+    // SweetAlert message function
+    function showSweetAlert(title, text, icon, timer = null) {
+        const alertConfig = {
+            title: title,
+            text: text,
+            icon: icon,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'OK'
+        };
+
+        if (timer) {
+            alertConfig.timer = timer;
+            alertConfig.timerProgressBar = true;
+            alertConfig.showConfirmButton = false;
+        }
+
+        return Swal.fire(alertConfig);
+    }
+
+    // Loading state
+    function showLoading(message, showSpinner = true) {
+        Swal.fire({
+            title: message,
+            allowOutsideClick: false,
+            didOpen: () => {
+                if (showSpinner) {
+                    Swal.showLoading();
+                }
+            }
+        });
+    }
+
+    // Initialize reCAPTCHA widgets
+    function initializeRecaptcha() {
+        if (document.querySelector('#login-recaptcha')) {
+            loginRecaptchaId = grecaptcha.render('login-recaptcha', {
+                'sitekey': biwillzAuth.recaptcha_site_key,
+                'theme': 'light',
+                'size': 'normal'
+            });
+        }
+        
+        if (document.querySelector('#register-recaptcha')) {
+            registerRecaptchaId = grecaptcha.render('register-recaptcha', {
+                'sitekey': biwillzAuth.recaptcha_site_key,
+                'theme': 'light',
+                'size': 'normal'
+            });
+        }
+    }
+
+    // Handle Login
+    $(document).on('submit', '#biwillz-login-form', function (e) {
+        e.preventDefault();
+        const form = $(this);
+        const submitButton = form.find('button[type="submit"]');
+
+        // Debug information
+        console.log('Form submission started');
+        console.log('AJAX URL:', biwillzAuth.ajax_url);
+
+        // Get reCAPTCHA response
+        const recaptchaResponse = grecaptcha.getResponse(loginRecaptchaId);
+        console.log('reCAPTCHA response:', recaptchaResponse);
+        console.log('reCAPTCHA widget ID:', loginRecaptchaId);
+
+        // Validate reCAPTCHA
+        if (!recaptchaResponse) {
+            showSweetAlert('Error!', 'Please complete the reCAPTCHA verification', 'error');
+            submitButton.prop('disabled', false);
+            return;
+        }
+
+        // Get form data
+        const formData = {
+            action: 'biwillz_login',
+            username: form.find('#username').val(),
+            password: form.find('#password').val(),
+            remember: form.find('input[name="remember"]').is(':checked'),
+            nonce: form.find('input[name="nonce"]').val(),
+            'g-recaptcha-response': recaptchaResponse
+        };
+
+        // Debug form data (don't log password in production)
+        console.log('Form data:', {
+            ...formData,
+            password: '[HIDDEN]'
+        });
+
+        // Disable submit button and add loading class
+        submitButton.prop('disabled', true);
+        submitButton.addClass('loading');
+
+        // Show loading notification
+        showLoading('Logging in...');
+
+        $.ajax({
+            url: biwillzAuth.ajax_url,
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function (response) {
+                console.log('Success response:', response);
+                Swal.close();
+                if (response.success) {
+                    showSweetAlert('Success!', response.data.message, 'success', 1500).then(() => {
+                        window.location.href = response.data.redirect_url;
+                    });
+                } else {
+                    showSweetAlert('Error!', response.data.message, 'error');
+                    grecaptcha.reset(loginRecaptchaId);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('AJAX Error:', {
+                    status: status,
+                    error: error,
+                    responseText: xhr.responseText
+                });
+                Swal.close();
+                showSweetAlert('Error!', 'An error occurred while processing your request. Please try again.', 'error');
+                grecaptcha.reset(loginRecaptchaId);
+            },
+            complete: function () {
+                submitButton.prop('disabled', false);
+                submitButton.removeClass('loading');
+            }
+        });
+    });
+
+    // Handle Registration
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize reCAPTCHA widgets
+        initializeRecaptcha();
+
+        const form = document.getElementById('biwillz-register-form');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                // Get reCAPTCHA response
+                const recaptchaResponse = grecaptcha.getResponse(registerRecaptchaId);
+                console.log('reCAPTCHA response:', recaptchaResponse);
+                console.log('reCAPTCHA widget ID:', registerRecaptchaId);
+
+                // Validate reCAPTCHA
+                if (!recaptchaResponse) {
+                    showSweetAlert('Error!', 'Please complete the reCAPTCHA verification', 'error');
+                    return;
+                }
+
+                const button = this.querySelector('.login');
+                button.classList.add('loading');
+
+                // Show loading notification
+                showLoading('Creating your account...');
+
+                const formData = new FormData(this);
+                formData.append('action', 'biwillz_register');
+                formData.append('g-recaptcha-response', recaptchaResponse);
+
+                fetch(biwillzAuth.ajax_url, {
+                    method: 'POST',
+                    body: formData,
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        button.classList.remove('loading');
+                        Swal.close();
+
+                        if (data.success) {
+                            showSweetAlert('Success!', data.data.message, 'success', 1500).then(() => {
+                                window.location.href = data.data.redirect_url;
+                            });
+                        } else {
+                            showSweetAlert('Error!', data.data.message, 'error');
+                            grecaptcha.reset(registerRecaptchaId);
+                        }
+                    })
+                    .catch(error => {
+                        button.classList.remove('loading');
+                        Swal.close();
+                        showSweetAlert('Error!', 'An error occurred. Please try again.', 'error');
+                        grecaptcha.reset(registerRecaptchaId);
+                    });
+            });
+        }
+    });
+
+    // Real-time password validation
+    $(document).on('input', '#reg-password', function () {
+        validatePassword($(this).val());
+    });
+
+    // Toggle password visibility
+    $(document).on('click', '.show-hide', function() {
+        const passwordInput = $(this).siblings('input');
+        const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+        passwordInput.attr('type', type);
+        $(this).toggleClass('fa-eye fa-eye-slash');
+    });
+
+    // Handle logout with SweetAlert
+    $(document).on('click', '.biwillz-logout', function (e) {
+        e.preventDefault();
+        const logoutButton = $(this);
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You will be logged out of your account.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, logout'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                logoutButton.prop('disabled', true);
+                showLoading('Logging out...');
+
+                $.ajax({
+                    url: biwillzAuth.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'biwillz_logout',
+                        nonce: biwillzAuth.nonce
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            showSweetAlert('Success!', 'Logout successful', 'success', 1500).then(() => {
+                                window.location.href = response.data.redirect_url;
+                            });
+                        }
+                    },
+                    complete: function () {
+                        logoutButton.prop('disabled', false);
+                    }
+                });
+            }
+        });
+    });
+
+    // Handle form switching
+    window.switchForm = function(formType) {
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        
+        if (formType === 'register') {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'flex';
+            if (typeof grecaptcha !== 'undefined') {
+                grecaptcha.reset(registerRecaptchaId);
+            }
+        } else {
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'flex';
+            if (typeof grecaptcha !== 'undefined') {
+                grecaptcha.reset(loginRecaptchaId);
+            }
+        }
+    };
+
+})(jQuery);

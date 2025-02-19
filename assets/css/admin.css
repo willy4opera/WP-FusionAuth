@@ -1,0 +1,153 @@
+/* BiWillz Auth Admin Styles */
+.wrap.biwillz-auth-settings {
+    max-width: 960px;
+    margin: 20px auto;
+}
+
+.biwillz-auth-settings h1 {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ccd0d4;
+    color: #1d2327;
+}
+
+.biwillz-auth-settings .form-table {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.biwillz-auth-settings .form-table th {
+    padding: 20px;
+    font-weight: 600;
+}
+
+.biwillz-auth-settings .form-table td {
+    padding: 20px;
+}
+
+.biwillz-auth-settings input[type="text"],
+.biwillz-auth-settings input[type="password"] {
+    width: 100%;
+    max-width: 400px;
+}
+
+.biwillz-auth-settings .description {
+    color: #646970;
+    font-style: italic;
+    margin-top: 8px;
+}
+
+/* Section headers */
+.biwillz-auth-settings h2 {
+    font-size: 1.4em;
+    margin: 30px 0 15px;
+    padding: 0;
+    color: #1d2327;
+}
+
+/* Checkbox styling */
+.biwillz-auth-settings input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.biwillz-auth-settings label {
+    vertical-align: middle;
+}
+
+/* Submit button */
+.biwillz-auth-settings .submit {
+    padding: 20px 0;
+    margin-top: 20px;
+    border-top: 1px solid #ccd0d4;
+}
+
+/* Settings sections */
+.biwillz-auth-settings .settings-section {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Success/Error messages */
+.biwillz-auth-settings .notice {
+    margin: 20px 0;
+}
+
+/* Google OAuth section specific styles */
+.biwillz-auth-settings .google-oauth-section {
+    border-left: 4px solid #4285f4;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 782px) {
+    .biwillz-auth-settings .form-table td {
+        padding: 15px;
+    }
+    
+    .biwillz-auth-settings input[type="text"],
+    .biwillz-auth-settings input[type="password"] {
+        max-width: 100%;
+    }
+}
+
+/* Toggle switch for enable/disable options */
+.biwillz-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.biwillz-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.biwillz-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.biwillz-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .biwillz-toggle-slider {
+    background-color: #2271b1;
+}
+
+input:checked + .biwillz-toggle-slider:before {
+    transform: translateX(26px);
+}
+
+/* Settings groups */
+.settings-group {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.settings-group:last-child {
+    border-bottom: none;
+}
