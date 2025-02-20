@@ -3,7 +3,7 @@
 * Plugin Name: Biwillz Authentication
 * Plugin URI: https://biwillzcomputers.com
 * Description: Custom authentication system with Google OAuth and traditional login
-* Version: 2.0.0
+* Version: 4.0.0
 * Author: Biwillz Computers
 * Author URI: https://biwillzcomputers.com
 * Text Domain: biwillz-auth
