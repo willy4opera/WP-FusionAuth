@@ -117,7 +117,7 @@ class Biwillz_Auth_Shortcodes {
         ob_start();
 
         // Include the login form template
-        $template_path = BIWILLZ_AUTH_PATH . 'templates/login-form.php';
+        $template_path = BIWILLZ_AUTH_PATH . 'templates/auth.php';
         if (file_exists($template_path)) {
             if ($atts['standalone'] === 'true') {
                 $this->is_standalone = true;

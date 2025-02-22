@@ -21,12 +21,17 @@ require_once BIWILLZ_AUTH_PATH . 'includes/class-auth-handler.php';
 require_once BIWILLZ_AUTH_PATH . 'includes/class-google-auth.php';
 require_once BIWILLZ_AUTH_PATH . 'includes/class-user-auth.php';
 require_once BIWILLZ_AUTH_PATH . 'includes/class-auth-settings.php';
+require_once BIWILLZ_AUTH_PATH . 'includes/auth_handlers/handle_login.php';
+require_once BIWILLZ_AUTH_PATH . 'includes/class-modal-form.php';
+
 
 class Biwillz_Auth {
     private static $instance = null;
     private $auth_handler;
     private $google_auth;
     private $user_auth;
+    private $login_handler;
+    private $modal_form; 
 
     public static function get_instance() {
         if (null === self::$instance) {
@@ -36,6 +41,7 @@ class Biwillz_Auth {
     }
 
     private function __construct() {
+
         add_action('init', array($this, 'init_handlers'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
         $this->init();
@@ -45,6 +51,8 @@ class Biwillz_Auth {
         $this->auth_handler = new Biwillz_Auth_Handler();
         $this->google_auth = new Biwillz_Google_Auth();
         $this->user_auth = new Biwillz_User_Auth();
+        $this->login_handler = new Biwillz_Auth_Login_Handler();
+        $this->modal_form = new Biwillz_Auth_Modal_Form(); 
     }
 
     public function enqueue_scripts() {
@@ -54,12 +62,12 @@ class Biwillz_Auth {
             'nonce' => wp_create_nonce('biwillz_auth_nonce')
         ));
         // Enqueue the main CSS file
-        wp_enqueue_style(
-            'biwillz-auth', 
-            BIWILLZ_AUTH_URL . 'assets/css/auth.css', 
-            array(), 
-            BIWILLZ_AUTH_VERSION
-        );
+        // wp_enqueue_style(
+        //     'biwillz-auth', 
+        //     BIWILLZ_AUTH_URL . 'assets/css/auth.css', 
+        //     array(), 
+        //     BIWILLZ_AUTH_VERSION
+        // );
 
         // Enqueue jQuery as a dependency
         wp_enqueue_script('jquery');
@@ -73,7 +81,7 @@ class Biwillz_Auth {
             true
         );
 
-        // Enqueue the main JavaScript file
+        // // Enqueue the main JavaScript file
         wp_enqueue_script(
             'biwillz-auth',
             BIWILLZ_AUTH_URL . 'assets/js/auth.js',

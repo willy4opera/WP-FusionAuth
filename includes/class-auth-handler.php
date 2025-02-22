@@ -490,7 +490,7 @@ class Biwillz_Auth_Handler {
         }
 
         ob_start();
-        include BIWILLZ_AUTH_PATH . 'templates/login-form.php';
+        include BIWILLZ_AUTH_PATH . 'templates/auth.php';
         return ob_get_clean();
     }
 
